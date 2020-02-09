@@ -21,6 +21,7 @@ def load_tokenizer():
         tokenizer = tokenizer_from_json(data)
     return tokenizer
 
+
 # Load the model used during training
 def load_model():
     model = NNModel()
@@ -28,7 +29,8 @@ def load_model():
     print(model.model.summary())
     return model
 
-def help():
+
+def print_help():
     print("Usage:")
     print("python testing.py -w <word> -d <distance>")
     print("Where")
@@ -37,22 +39,24 @@ def help():
     print("To obtain the word list, try:")
     print("python testing.py -l")
 
+
 def word_list():
     print(load_tokenizer().word_index.keys())
+
 
 def main():
     # Retrieve arguments, print help() if that fails
     try:
         opts, args = getopt.getopt(sys.argv[1:], "hlw:d:t:", ["help", "list", "word=", "distance=", "tests="])
     except getopt.GetoptError:
-        help()
+        print_help()
         sys.exit(2)
     test_word = None
     distance = None
     num_tests = None
     for opt, arg in opts:
         if opt in ("-h", "--help"):
-            help()
+            print_help()
             sys.exit()
         elif opt in ("-l", "--list"):
             word_list()
@@ -64,21 +68,21 @@ def main():
                 distance = int(arg)
             except ValueError:
                 print("--distance %s couldn't be converted to an int. \n" % arg)
-                help()
+                print_help()
                 sys.exit(2)
         elif opt in ("-t", "--tests"):
             try:
                 num_tests = int(arg)
             except ValueError:
                 print("--tests %s couldn't be converted to an int. \n" % arg)
-                help()
+                print_help()
                 sys.exit(2)
 
     # Check that the script recieved all necessary arguments, print help if not
     if None not in (test_word, distance, num_tests):
         pass
     else:
-        help()
+        print_help()
         sys.exit(2)
 
     # Start by opening the tokenizer used during training
@@ -121,6 +125,6 @@ def main():
 
     word_list()
 
+
 if __name__ == "__main__":
     main()
-
