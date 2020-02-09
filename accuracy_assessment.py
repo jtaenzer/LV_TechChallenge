@@ -20,7 +20,7 @@ import matplotlib.pyplot as plt
 
 def print_help():
     print("Usage:")
-    print("python accuracy_assessment.py -n <num_words> -d <max_distance> -t <tests")
+    print("python accuracy_assessment.py -n <num_words> -d <max_distance> -t <tests>")
     print("Where")
     print("<num_words> is the number of words to assess from tokenizer word_index (sorted by most common)")
     print("<max_distance> is the largest distance to check between words and should be an integer number")
