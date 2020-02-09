@@ -16,7 +16,7 @@ from keras.preprocessing.sequence import pad_sequences
 
 # Load the tokenizer used during training from a json
 def load_tokenizer():
-    with open('./tokenizer_50_file_training.json') as jsonf:
+    with open('./tokenizer_51_file_training.json') as jsonf:
         data = load(jsonf)
         tokenizer = tokenizer_from_json(data)
     return tokenizer
@@ -25,17 +25,18 @@ def load_tokenizer():
 # Load the model used during training
 def load_model():
     model = NNModel()
-    model.load_model("./model_50_file_training.h5")
+    model.load_model("./model_51_file_training.h5")
     print(model.model.summary())
     return model
 
 
 def print_help():
     print("Usage:")
-    print("python testing.py -w <word> -d <distance>")
+    print("python testing.py -w <word> -d <distance> -t <tests>")
     print("Where")
     print("<word> should by a word in the word list used during training")
-    print("<distance> should be an integer number")
+    print("<distance> is the distance between two instances of <word>")
+    print("<tests> is the number of tests to perform with random sequences of words not containing <word>")
     print("To obtain the word list, try:")
     print("python testing.py -l")
 
@@ -90,6 +91,7 @@ def main():
     tokenizer = load_tokenizer()
     # Get the index of our test word in the tokenizer
     test_word_index = tokenizer.word_index[test_word]
+    print(len(tokenizer.word_index))
     # Get the num_words setting for this tokenizer, used to determine which words were used during training
     num_words = tokenizer.num_words
     # Sort the words in the tokenizer by their frequency and keep only the first num_words words
@@ -122,8 +124,6 @@ def main():
 
     print("Probability of encountering the word %s after a sequence of %d words is %f"
           % (test_word, distance, probability_sum/num_tests))
-
-    word_list()
 
 
 if __name__ == "__main__":
