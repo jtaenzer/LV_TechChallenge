@@ -100,7 +100,20 @@ Produce plots comparing P(W|d) from the above testing script with P(W|d) measure
 python accuracy_assessment.py -n <num_words> -d <max_distance> -t <tests>
 ```
 
-Plots produced with -w 20 -d 10 -t 500 can be found in the plots directory:
+Plots produced with -w 20 -d 10 -t 500 can be found in the plots directory and are also included below.
+
+Aside from the plots, my accuracy assessment won't be quantitative, because it can be summed up fairly
+quickly: This approach did not produce accurate results! There are some interesting trends
+
+- The model over-predicts the frequency of the most common words (with the exception of 'i', which I mentioned above),
+before turning over and under-predicting the frequency of less common words. That happens around the eight most common
+word ('yupela') and is quite distinct.
+
+- The decay of P(W|d) with increasing d, measured from the test data is quite clear for the more common words (e.g. see the plots for
+'i', 'na', 'bilong', 'ol'). Starting from around the 7th most common word ('man') we start to see fluctuations from the expected behavior that I would guess are
+caused by lack of statistics in the test data.
+
+As I mentioned above, the NN never predicts 'i' as the next word token, I include the plot for completeness anyway.
 
 ![i](https://github.com/jtaenzer/LV_TechChallenge/blob/master/plots/i.png "i.png")
 
