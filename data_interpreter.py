@@ -1,31 +1,27 @@
+# -*- coding: utf-8 -*
+
 import numpy
 import sys
+import itertools
+from random import shuffle, sample
+from os import path, listdir
 
 from keras.preprocessing.text import Tokenizer
 from keras.preprocessing.sequence import pad_sequences
-
-from os import path, listdir
+from nltk import edit_distance
 
 # Class to read in and manipulate text data
 class DataInterpreter:
-    def __init__(self, datapath="./data/", training_frac = 0.5, bad_chars=".!?\"“”", line_skip = 2):
-        self.datapath = datapath  # Path to data files
-        self.bad_chars = bad_chars  # Characters to strip so we only keep words
-        # Used later to skip the chapter name and chapter number that are at the start of each data file
-        self.line_skip = line_skip
+    def __init__(self, datapath="./data/", training_frac=0.5, line_skip=2):
+        self.datapath = datapath  # Path to directory of data files
         self.training_frac = training_frac  # Fraction of data to set a;side for training
-
-        # Retrieve a list of .txt files in the datapath directory
-        self.data_file_list = self.find_data_files()
+        self.data_file_list = self.find_data_files() # Retrieve a list of .txt files in the datapath directory
         # Split the data files into training and testing data, these will be handled differently
+        # Probably introducing a bias here by splitting down the middle, using random choices might be better
         self.training_files = self.data_file_list[:int(len(self.data_file_list)*self.training_frac)]
         self.testing_files = self.data_file_list[int(len(self.data_file_list)*self.training_frac):]
-
-        # Initialize the tokenizer before we use it in textfiles_to_sequences
+        # Initialize the tokenizer
         self.tokenizer = Tokenizer()
-        # Convert our text/word data to sequences of integers and obtain the length of the longest sequence
-        self.max_length, self.sequences = self.textfiles_to_padded_sequences(self.data_file_list)
-
 
     # Function that finds all .txt files in the self.datapath directory
     def find_data_files(self):
@@ -38,28 +34,112 @@ class DataInterpreter:
             self.datapath += "/"
         return [self.datapath + datafile for datafile in listdir(self.datapath) if datafile.endswith(".txt")]
 
-    # Function to raw text data to sequences of integers using the Tokenizer in keras.preprocessing.text
-    def textfiles_to_padded_sequences(self, data_file_list, seq_sep = "\n", word_sep = " "):
-        # Open files
-        for cnt, file in enumerate(data_file_list):
-            if cnt > 0: continue ### Remove this later
-            with open(file, "r", encoding="utf8") as datafile:
-                txtdata = datafile.read()
-                # Remove punctuation
-                for i in range(len(self.bad_chars)):
-                    txtdata = txtdata.replace(self.bad_chars[i],"")
+    # Set the number of words to keep in the tokenizer based the frequency with which words appear in the txt data
+    # Returns vocab size as this is used to determine the size of the hidden layer and output layer
+    def set_num_words(self, txtdata, min_freq=100):
+        tmp_tokenizer = Tokenizer()
+        tmp_tokenizer.fit_on_texts([txtdata])
+        # Sort the tokenizer word counts by the frequency with which each word appears
+        sorted_word_counts = sorted(tmp_tokenizer.word_counts.items(), key=lambda x: x[1], reverse=True)
+        # Filter out words that appear less often than min_freq
+        filtered_word_counts = list(filter(lambda x: x[1] > min_freq, sorted_word_counts))
+        # Length of the filtered list is the new vocabulary size, i.e. tokenizer.num_words
+        vocab_size = len(filtered_word_counts)
+        self.tokenizer.num_words = vocab_size
+        return filtered_word_counts
+
+    # Convert text data line by line into padded sequences of integers, which we will feed into the model
+    # Most of our data contains one sentence per line, hence the default sequence seperate of a line break
+    # In some cases that formatting doesn't hold, so for sentences greater than max_len we will try to split by alt_seps
+    def training_data_to_padded_sequences(self, txtdata, seq_sep="\n", max_len=50, shuffle_data=True):
         # Fit the tokenizer on the data to create a word index
         self.tokenizer.fit_on_texts([txtdata])
-        # Loop over lines of text in our data and convert words to integers
+        # Split the text data to chunks using seq_sep so we can loop over the chunks
+        txtdata_split = txtdata.split(seq_sep)
+        # By default, shuffle the chunks
+        if shuffle_data:
+            shuffle(txtdata_split)
+        # Loop over chunks of data and convert to sequences of integers
         sequences = []
-        for cnt, line in enumerate(txtdata.split(seq_sep)):
-            if cnt < self.line_skip:  # Skipping the first N lines (due to chapter names/numbers..)
-                continue
-            converted_line = self.tokenizer.texts_to_sequences([line])[0]
-            for i in range(1, len(converted_line)):
-                sequences.append(converted_line[: i + 1])
-        # Max length of a text sequence, used later to set the size of the input layer in our NN
+        for chunk in txtdata_split:
+            # Convert the chunk of text data to a sequence of integers
+            converted_chunks = self.tokenizer.texts_to_sequences([chunk])[0]
+            # If converted_chunks contains more words than max_len, split it up into chunks of length max_len
+            if len(converted_chunks) > max_len:
+                converted_chunks = [converted_chunks[i: i+max_len] for i in range(0, len(converted_chunks), max_len)]
+            else:
+                converted_chunks = [converted_chunks]  # Has to be a list so we can loop over it below
+            for converted_chunk in converted_chunks:
+                # Skip any empty converted_lines, could be left over from splitting
+                if not converted_chunk:
+                    continue
+                # Create multiple sequences from each chunk building them up word by word
+                for i in range(1, len(converted_chunk)):
+                    sequences.append(converted_chunk[: i + 1])
+        # Max length of text sequences, used for padding and later to set the size of the input layer in our NN
+        # Should usually be equal to max_len argument, but could be smaller
         max_length = numpy.max([len(sequence) for sequence in sequences])
         # Pad sequences so they are all consistent in length
         sequences = pad_sequences(sequences, maxlen=max_length, padding='pre')
         return max_length, sequences
+
+    # Similar function to the above training_data_to_padded_sequences
+    # For the testing data we won't create multiple subsequnces from each sequence
+    # We will also simply drop sequences exceeding the max_len for simplicity
+    def test_data_to_padded_sequences(self, txtdata, seq_sep, max_len=50):
+        # Split by seq_sep string, which in general will probably be a word, and loop over chunks
+        sequences = []
+        for chunk in txtdata.split(seq_sep):
+            converted_chunk = self.tokenizer.texts_to_sequences([chunk])[0]
+            # Drop sequences with length greater than max_len
+            if len(converted_chunk) > max_len:
+                continue
+            sequences.append(pad_sequences([converted_chunk], maxlen=max_len-1, padding='pre'))
+        # Pad sequences up to max_len, which should be equal to the vocabulary size / size of the input layer
+        #sequences = pad_sequences(sequences, maxlen=max_len-1, padding='pre')
+        return sequences
+
+    # Read in text files from a list of paths, return a string of text data
+    @staticmethod
+    def read_text_files(input_file_list, n_files_to_read=-1, sample_data=False):
+        # By default just use the entire dataset
+        data_file_list = input_file_list
+        # If we want a subset of the data and sample_data is true, select a random sample from the data
+        if n_files_to_read > 0 and sample_data:
+            data_file_list = sample(input_file_list, n_files_to_read)
+        # Otherwise, just take the first n files
+        elif n_files_to_read > 0 and not sample_data:
+            data_file_list = input_file_list[:n_files_to_read]
+        txtdata = ""
+        # Loop over file list
+        for file in data_file_list:
+            # Open file and append the text to txtdata
+            with open(file, "r", encoding="utf8") as datafile:
+                tmpdata = datafile.read()
+                # Remove utf8 curly quotes, tokenizer removes most punctuation but not these
+                tmpdata = tmpdata.replace(u"\u201c", "")
+                tmpdata = tmpdata.replace(u"\u201d", "")
+                txtdata += tmpdata
+        return txtdata
+
+    # Simplify the text data by identifying similar pairs words and keeping only one of the pair
+    # Similarity of words determined using the Levenstein's distance -- from the nltk library's edit_distance
+    # This can be incredibly computation expensive for a large amount of text data so we will restrict it to common words
+    @staticmethod
+    def simplify_text_data(txtdata, min_dist=2, min_freq=100):
+        tmp_tokenizer = Tokenizer()
+        tmp_tokenizer.fit_on_texts([txtdata]) # Fit the textdata to get a word index
+        # Sort the tokenizer word counts by the frequency with which each word appears
+        sorted_word_counts = sorted(tmp_tokenizer.word_counts.items(), key=lambda x: x[1], reverse=True)
+        # Filter out words that appear less often than min_freq
+        filtered_word_counts = list(filter(lambda x: x[1] > min_freq, sorted_word_counts))
+        # Length of the filtered list is the new vocabulary size, i.e. tokenizer.num_words
+        # Use itertools to get all possible unique pair-wise combinations of words in the filtered word_index
+        pairs = list(itertools.combinations([filtered_word_counts[i][0] for i in range(len(filtered_word_counts))], 2))
+        # Loop over pairs and calculate the distance
+        for pair in pairs:
+            dist = edit_distance(pair[0], pair[1])
+            # If the distance is less than the min_dist, string.replace
+            if dist < min_dist:
+                txtdata = txtdata.replace(pair[1], pair[0])
+        return txtdata
