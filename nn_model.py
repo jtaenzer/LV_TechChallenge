@@ -16,7 +16,7 @@ class NNModel():
         self.model.add(Embedding(output_size, projection_size, input_length=input_size))
         self.model.add(LSTM(hidden_layer_size))
         self.model.add(Dense(output_size, activation='softmax'))
-        self.model.compile(loss='categorical_crossentropy', optimizer=Adam(lr=0.0005), metrics=['accuracy'])
+        self.model.compile(loss='categorical_crossentropy', optimizer="adam", metrics=['accuracy'])
         print(self.model.summary())
 
     # Fit the model to the data
