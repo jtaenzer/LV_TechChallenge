@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*
 # Imports of built-in libraries
 import sys
 import getopt
@@ -8,10 +7,9 @@ from random import choice
 # This will stop tensorflow from spamming unnecessary error messages about its GPU implementation
 # Needs to set before we import anything from keras/tensorflow
 environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-# Import keras libraries
-# Import classes made for the project
-from data_interpreter import DataInterpreter
+# Import model class
 from nn_model import NNModel
+# Import keras libraries
 from keras.preprocessing.text import tokenizer_from_json
 from keras.preprocessing.sequence import pad_sequences
 
