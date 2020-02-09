@@ -5,6 +5,7 @@ import sys
 import itertools
 from random import shuffle, sample
 from os import path, listdir
+from re import sub
 
 from keras.preprocessing.text import Tokenizer
 from keras.preprocessing.sequence import pad_sequences
@@ -145,7 +146,6 @@ class DataInterpreter:
             # If the distance is less than the min_dist and we haven't already replaced one of the words, replace
             if dist < min_dist and not (pair[0] in replaced_words or pair[1] in replaced_words):
                 # Use regular expressions to identify word boundaries and do the string replacement
-                from re import sub
                 txtdata = sub(r"\b%s\b" % pair[1], pair[0], txtdata)
                 replaced_words.append(pair[1])
         return txtdata
