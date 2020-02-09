@@ -119,6 +119,8 @@ class DataInterpreter:
                 # Remove utf8 curly quotes, tokenizer removes most punctuation but not these
                 tmpdata = tmpdata.replace(u"\u201c", "")
                 tmpdata = tmpdata.replace(u"\u201d", "")
+                tmpdata = tmpdata.replace(u"\u2018", "")
+                tmpdata = tmpdata.replace(u"\u2019", "")
                 txtdata += tmpdata
         return txtdata
 
@@ -136,10 +138,39 @@ class DataInterpreter:
         # Length of the filtered list is the new vocabulary size, i.e. tokenizer.num_words
         # Use itertools to get all possible unique pair-wise combinations of words in the filtered word_index
         pairs = list(itertools.combinations([filtered_word_counts[i][0] for i in range(len(filtered_word_counts))], 2))
-        # Loop over pairs and calculate the distance
+        # Loop over pairs and calculate the distance, don't consider words that have already been replaced
+        replaced_words = []
         for pair in pairs:
             dist = edit_distance(pair[0], pair[1])
-            # If the distance is less than the min_dist, string.replace
-            if dist < min_dist:
-                txtdata = txtdata.replace(pair[1], pair[0])
+            # If the distance is less than the min_dist and we haven't already replaced one of the words, replace
+            if dist < min_dist and not (pair[0] in replaced_words or pair[1] in replaced_words):
+                # Use regular expressions to identify word boundaries and do the string replacement
+                from re import sub
+                txtdata = sub(r"\b%s\b" % pair[1], pair[0], txtdata)
+                replaced_words.append(pair[1])
+        return txtdata
+
+    # Similar to the above simplify_text_data method, but we pass an existing tokenizer (one used for training)
+    @staticmethod
+    def simplify_text_data_with_tokenizer(txtdata, tokenizer, min_dist=2):
+        # Determine the number of words to use for simplification from the tokenizer
+        num_words = tokenizer.num_words
+        if not num_words:  # If num_words wasn't set for the tokenizer, use all words
+            num_words = len(tokenizer.word_index.items())
+        # Sort the tokenizer word counts by the frequency with which each word appears
+        # If num_words was set, our training will only have considered the first num_words most frequent words
+        # So we sort the tokenizer by word counts and keep only the first num_words elements
+        sorted_word_counts = sorted(tokenizer.word_counts.items(), key=lambda x: x[1], reverse=True)[:num_words]
+        # Use itertools to get all possible unique pair-wise combinations of words in sorted_word_counts
+        pairs = list(itertools.combinations([sorted_word_counts[i][0] for i in range(len(sorted_word_counts))], 2))
+        # Loop over pairs and calculate the distance, don't consider words that have already been replaced
+        replaced_words = []
+        for pair in pairs:
+            dist = edit_distance(pair[0], pair[1])
+            # If the distance is less than the min_dist and we haven't already replaced one of the words, replace
+            if dist < min_dist and not (pair[0] in replaced_words or pair[1] in replaced_words):
+                # Use regular expressions to identify word boundaries and do the string replacement
+                from re import sub
+                txtdata = sub(r"\b%s\b" % pair[1], pair[0], txtdata)
+                replaced_words.append(pair[1])
         return txtdata
