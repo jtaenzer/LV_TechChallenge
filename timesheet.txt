@@ -1,0 +1,36 @@
+February 6 2020
+12:38 - Created git repo, started implementation with DataInterpreter class
+13:33 - Lunch break
+14:10 - End lunch break
+14:54 - DataInterpreter ready to produce training data, start working on the model
+16:00 - Stopping for the day
+Time spent Feb6 = ~2h45m
+
+February 7 2020
+10:03 - Simple testing with model created yesterday, training is lengthy so working to improve that
+11:03 - Changing training data production to remove uncommon words and group common words
+12:20 - Implemented two functions to simplify the test data:
+        simply_text_data finds similar words and string.replace's them
+        set_num_words sets the number of words to keep in the keras tokenizer word index, based on frequency
+13:35 - Running training with simplified test data and stopping for the day
+Time spent Feb7 = ~3h (there were a few short breaks in there)
+
+February 8 2020
+7:48 - Adding some randomness to the selection of training data, hoping to improve the loss
+8:15 - Adding some functionality to data_interpreter to convert testing data into integer sequences for evaluation
+9:00 (roughly) - Creating a testing script
+10:30 - First pass at a testing script for accuracy assessment created, stopping for now
+Time spent Feb8 = ~2h45m
+
+Feb 9 2020
+8:03 - Working on testing script to evaluate P(W|d)
+9:07 - Finished first pass at accuracy assessment script, break for breakfast
+9:32 - Back to work, starting on accuracy assessment
+10:39 - Discovered a major bug in my text simplification scheme (oops), retraining will be necessary
+14:00(approx) - Lunch break
+14:40(approx) - back to work
+15:27 - Finished retraining. Documenting and finalizing.
+18:17 - Finished documenting
+Time spent Feb9 = ~9h
+
+Total time spent = ~17h30m
