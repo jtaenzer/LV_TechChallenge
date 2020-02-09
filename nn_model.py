@@ -3,17 +3,20 @@ from keras.models import Sequential
 from keras.layers import Dense
 from keras.layers import LSTM
 from keras.layers import Embedding
+from keras.optimizers import Adam
+from keras.preprocessing.sequence import pad_sequences
 
 class NNModel():
     def __init__(self):
         self.model = None
 
-    def prepare_model(self, input_size, output_size, projection_size=32, num_hidden_neurons=75):
+    def prepare_model(self, input_size, output_size, projection_size=32, hidden_layer_size=75):
         self.model = Sequential()
         self.model.add(Embedding(output_size, projection_size, input_length=input_size))
-        self.model.add(LSTM(num_hidden_neurons))
+        self.model.add(LSTM(hidden_layer_size))
         self.model.add(Dense(output_size, activation='softmax'))
-        self.model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+        self.model.compile(loss='categorical_crossentropy', optimizer=Adam(lr=0.0005), metrics=['accuracy'])
+        print(self.model.summary())
 
     def fit_model(self, input_data, output, epochs=500, verbosity=2):
         self.model.fit(input_data, output, epochs=epochs, verbose=verbosity)
@@ -23,3 +26,24 @@ class NNModel():
 
     def load_model(self, path="./model.h5"):
         self.model = load_model(path)
+
+    def generate_word(self, sequence):
+        return self.model.predict_classes(sequence, verbose=0)
+
+    def generate_sentence(self, seed_word, length, tokenizer):
+        input_text = seed_word
+        for _ in range(length):
+            sequence = tokenizer.texts_to_sequences([input_text])[0]
+            # Pad the sequence up to the size of the input layer, given by model.input_shape[1]
+            sequence = pad_sequences([sequence], maxlen=self.model.input_shape[1], padding="pre")
+            out_int = self.generate_word(sequence)
+            out_word = ""
+            for word, index in tokenizer.word_index.items():
+                if index == out_int:
+                    out_word = word
+                    break
+            input_text += " " + out_word
+        return(input_text)
+
+    def get_probability(self, seed_sequence):
+        return self.model.predict_proba(seed_sequence)
