@@ -91,7 +91,6 @@ def main():
     tokenizer = load_tokenizer()
     # Get the index of our test word in the tokenizer
     test_word_index = tokenizer.word_index[test_word]
-    print(len(tokenizer.word_index))
     # Get the num_words setting for this tokenizer, used to determine which words were used during training
     num_words = tokenizer.num_words
     # Sort the words in the tokenizer by their frequency and keep only the first num_words words
