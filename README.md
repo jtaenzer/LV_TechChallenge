@@ -63,7 +63,7 @@ assessment scripts can be used without retraining.
 text data, but discovered that some (rare) lines had lengths in excess of 150 words! Further investigation revealed that 
 although for the most part 1 line = 1 sentence in the data, there are some exceptions to that rule where multiple
 sentences appear on the same line. There are also some very long sentences. To avoid excessive padding of the input, I
-used a max sequence length of 25. Sequences longer than 25 words are still used but broken up into multiple sequences.
+used a max sequence length of 15. Sequences longer than 15 words are still used but broken up into multiple sequences.
 
 - I split the provided data into training and testing data simply by making an alphabetically ordered list and dividing 
 it in two. This may introduce some bias since the vocabulary in the first half and second half of the data may differ,
