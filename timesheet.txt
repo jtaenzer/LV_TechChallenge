@@ -30,7 +30,7 @@ Feb 9 2020
 14:00(approx) - Lunch break
 14:40(approx) - back to work
 15:27 - Finished retraining. Documenting and finalizing.
-18:17 - Finished documenting
+18:17 - Finished documenting but reproducing the accuracy assessment plots before submitting!
 Time spent Feb9 = ~9h
 
 Total time spent = ~17h30m
