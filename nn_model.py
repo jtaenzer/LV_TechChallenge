@@ -3,7 +3,6 @@ from keras.models import Sequential
 from keras.layers import Dense
 from keras.layers import LSTM
 from keras.layers import Embedding
-from keras.optimizers import Adam
 from keras.preprocessing.sequence import pad_sequences
 
 class NNModel():
