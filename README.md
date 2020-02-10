@@ -66,7 +66,7 @@ sentences appear on the same line. There are also some very long sentences. To a
 used a max sequence length of 25. Sequences longer than 25 words are still used but broken up into multiple sequences.
 
 - I split the provided data into training and testing data simply by making an alphabetically ordered list and dividing 
-it in two. This may introduce some bias since the vocabulary in the first half and second half of the dat may differ,
+it in two. This may introduce some bias since the vocabulary in the first half and second half of the data may differ,
 and a better approach would have been to sample randomly. I never got around to implementing that, however.
 
 Testing:
@@ -87,11 +87,6 @@ python testing.py -w <WORD> -d <DISTANCE> -t <# OF TESTS>
 This will generate -t random sequences of length -d from the word list, retrieve the
 probability that the next word is -w for each sequence, and then average the sum of the probabilities by -t.
 
-Major caveat:
-
-The NN appears to be broken for the most common word, 'i', and always predicts a vanishingly small probability that
-it will be the next word. Sadly I was never able to understand why this was is the case.
-
 ## Accuracy assessment
 
 Produce plots comparing P(W|d) from the above testing script with P(W|d) measured directly from the testing data:
@@ -100,20 +95,20 @@ Produce plots comparing P(W|d) from the above testing script with P(W|d) measure
 python accuracy_assessment.py -n <num_words> -d <max_distance> -t <tests>
 ```
 
-Plots produced with -w 20 -d 10 -t 500 can be found in the plots directory and are also included below.
+The same simplifications made to the text during training are also made to the testing data before measuring P(W|d).
+
+Plots produced with -w 20 -d 15 -t 10000 can be found in the plots directory and are also included below.
 
 Aside from the plots, my accuracy assessment won't be quantitative, because it can be summed up fairly
 quickly: This approach did not produce accurate results! There are some interesting trends
 
 - The model over-predicts the frequency of the most common words (with the exception of 'i', which I mentioned above),
-before turning over and under-predicting the frequency of less common words. That happens around the eight most common
+before turning over and under-predicting the frequency of less common words. That happens around the eighth most common
 word ('yupela') and is quite distinct.
 
-- The decay of P(W|d) with increasing d, measured from the test data is quite clear for the more common words (e.g. see the plots for
-'i', 'na', 'bilong', 'ol'). Starting from around the 7th most common word ('man') we start to see fluctuations from the expected behavior that I would guess are
-caused by lack of statistics in the test data.
-
-As I mentioned above, the NN never predicts 'i' as the next word token, I include the plot for completeness anyway.
+- The decay of P(W|d) with increasing d, measured from the test data is quite clear for the more common words 
+(e.g. see the plots for 'i', 'na', 'bilong', 'ol'). Starting from around the 7th most common word ('man') we start to 
+see fluctuations from the expected behavior that I would assume are caused by lack of statistics in the test data.
 
 ![i](https://github.com/jtaenzer/LV_TechChallenge/blob/master/plots/i.png "i.png")
 
