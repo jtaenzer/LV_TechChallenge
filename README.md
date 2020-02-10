@@ -22,7 +22,7 @@ python -m pip install matplotlib --upgrade
 
 The default setup *should* work out of the box if all dependencies are present.
 
-Training:
+#### Training:
 
 ```
 python training.py
@@ -35,7 +35,7 @@ After training the NN will be saved in a .h5 file.
 *WARNING* The training can be quite time consuming! I used a random sampling of 51 files from the first half of the data 
 provided to produce the model file and tokenizer that are included in this repo.
 
-### Thoughts and caveats on the training:
+#### Thoughts and caveats on the training:
 
 General thoughts:
 
@@ -69,7 +69,7 @@ used a max sequence length of 25. Sequences longer than 25 words are still used 
 it in two. This may introduce some bias since the vocabulary in the first half and second half of the data may differ,
 and a better approach would have been to sample randomly. I never got around to implementing that, however.
 
-Testing:
+#### Testing:
 
 First get the word list:
 
@@ -87,7 +87,7 @@ python testing.py -w <WORD> -d <DISTANCE> -t <# OF TESTS>
 This will generate -t random sequences of length -d from the word list, retrieve the
 probability that the next word is -w for each sequence, and then average the sum of the probabilities by -t.
 
-## Accuracy assessment
+#### Accuracy assessment
 
 Produce plots comparing P(W|d) from the above testing script with P(W|d) measured directly from the testing data:
 
