@@ -135,9 +135,8 @@ def main():
                 sequence = tokenizer.texts_to_sequences([random_words])[0]
                 sequence = pad_sequences([sequence], maxlen=model.model.input_shape[1], padding="pre")
                 probabilities = model.get_probability(sequence)[0]
-                # We subtract 1 from test_word_index here since tokenizer.word_index starts from 1 but
-                # model.get_probability returns a numpy array indexed from 0
-                probability_sum += probabilities[test_word_index - 1]
+                # Get the probability for the current word
+                probability_sum += probabilities[test_word_index]
             model_prob_list.append(probability_sum/num_tests)
 
         # Create a distance list to use in plotting
