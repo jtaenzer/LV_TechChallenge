@@ -102,7 +102,7 @@ Plots produced with -w 20 -d 15 -t 10000 can be found in the plots directory and
 Aside from the plots, my accuracy assessment won't be quantitative, because it can be summed up fairly
 quickly: This approach did not produce accurate results! There are some interesting trends
 
-- The model over-predicts the frequency of the most common words (with the exception of 'i', which I mentioned above),
+- The model over-predicts the frequency of the most common words,
 before turning over and under-predicting the frequency of less common words. That happens around the eighth most common
 word ('yupela') and is quite distinct.
 
